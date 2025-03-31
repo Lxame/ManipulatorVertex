@@ -90,39 +90,37 @@ void getPolylineVertex()
     return;
   }
 
-  if (ncdbOpenNcDbEntity(pEnt, plineId, NcDb::kForRead) == Nano::eOk)
+  if (ncdbOpenNcDbEntity(pEnt, plineId, NcDb::kForRead) != Nano::eOk)
   {
-    if (NcDb3dPolyline* pline = NcDb3dPolyline::cast(pEnt))
+    ncutPrintf(L"\nНе удалось открыть entity!\n");
+    return;
+  }
+
+  if (NcDb3dPolyline* pline = NcDb3dPolyline::cast(pEnt))
+  {
+    NcDbObjectIterator* iter = pline->vertexIterator();
+    NcDbObjectIdArray vertexArray;
+    for (iter->start(); !iter->done(); iter->step())
     {
-      NcDbObjectIterator* iter = pline->vertexIterator();
-      NcDbObjectIdArray vertexArray;
-      for (iter->start(); !iter->done(); iter->step())
+      vertexArray.append(iter->objectId());
+      NcDb3dPolylineVertex* pVertex;
+      if (ncdbOpenNcDbObject((NcDbObject*&)pVertex, iter->objectId(), NcDb::kForRead) == Nano::eOk)
       {
-        vertexArray.append(iter->objectId());
-        NcDb3dPolylineVertex* pVertex;
-        if (ncdbOpenNcDbObject((NcDbObject*&)pVertex, iter->objectId(), NcDb::kForRead) == Nano::eOk)
-        {
-          NcGePoint3d pos = pVertex->position();
-          ncutPrintf(L"\nКоординаты вершины: X=%f, Y=%f, Z=%f", pos.x, pos.y, pos.z);
-          pVertex->close();
-        }
-        else
-        {
-          ncutPrintf(L"\nНе удалось получить координаты вершины!");
-        }
+        NcGePoint3d pos = pVertex->position();
+        ncutPrintf(L"\nКоординаты вершины: X=%f, Y=%f, Z=%f", pos.x, pos.y, pos.z);
+        pVertex->close();
       }
-      delete iter;
+      else
+      {
+        ncutPrintf(L"\nНе удалось получить координаты вершины!");
+      }
     }
-    else
-    {
-      ncutPrintf(L"\nВыбранный примитив не является прямой!\n");
-      pEnt->close();
-      return;
-    }
+    delete iter;
   }
   else
   {
-    ncutPrintf(L"\nНе удалось открыть entity!\n");
+    ncutPrintf(L"\nВыбранный примитив не является 3D полилинией!\n");
+    pEnt->close();
     return;
   }
 
@@ -130,7 +128,7 @@ void getPolylineVertex()
 
 void helloNrxCmd()
 {
-  ncutPrintf(L"Waaaaaauuuuuu!!!");
+  ncutPrintf(L"Module is working!");
 }
 
 #pragma region NRXinit
