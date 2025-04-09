@@ -250,6 +250,8 @@ void openLineFromBlock()
   pBlockTable->getName(blockName);
   ncutPrintf(blockName);
 
+  Manipulator manip;
+
   for (; !pIter->done(); pIter->step())
   {
     AcDbEntity* pEnt;
@@ -270,6 +272,8 @@ void openLineFromBlock()
             AcGePoint3d pos = pVertex->position();
             acutPrintf(_T("\nVertex at: X=%f, Y=%f, Z=%f"), pos.x, pos.y, pos.z);
             pVertex->close();
+
+            manip.addPointToSkelet(pos.x, pos.y, pos.z);
           }
         }
         delete pVertIter;
@@ -294,14 +298,20 @@ void openLineFromBlock()
     AcGePoint3d  origin; // Origin of the UCS
     ucsMatrix.getCoordSystem(origin, xAxis, yAxis, zAxis);
 
-    Manipulator manip(origin.x, origin.y, origin.z);
-    std::wstring tmp(blockName);
-    manip.setName(tmp);
+    manip.setOrigin(origin.x, origin.y, origin.z);
 
-    std::wstring name, path;
-    getFileNameAndPath(name, path);
-    ncutPrintf(name.c_str());
-    ncutPrintf(path.c_str());
+    std::wstring nameStr(blockName);
+    manip.setName(nameStr);
+
+    std::wstring filename, filepath;
+    getFileNameAndPath(filename, filepath);
+    ncutPrintf(filename.c_str());
+    ncutPrintf(filepath.c_str());
+
+    manip.setFileName(filename);
+    manip.setFilePath(filepath);
+
+    manip.writeToJSON();
 
     acutPrintf(_T("\nModel Coordinate System (MCS):"));
     acutPrintf(_T("\nOrigin: X=%.6f, Y=%.6f, Z=%.6f"), origin.x, origin.y, origin.z);
