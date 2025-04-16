@@ -22,57 +22,11 @@ BOOL CNRXVectorAppApp::InitInstance()
 }
 #pragma endregion
 
-void helloNrxCmd();
-void manipulatorVector();
+void testNrxCmd();
 void getPolylineVertex();
 bool getFilePath(const NCHAR *&path);
 bool getFileNameAndPath(std::wstring &name, std::wstring &path);
-
-void manipulatorVector()
-{
-  nds_name ss, ent_name;
-  NRX::Int32 ssLen;
-  NcDbObjectId entId;
-  NcDbEntity* pEnt;
-  int ret = ncedSSGet(L"", NULL, NULL, NULL, ss);
-
-  if (ret != RTNORM)
-  {
-    ncutPrintf(L"\nОшибка выбора примитивов!\n");
-    return;
-  }
-
-  if (ncedSSLength(ss, &ssLen) != RTNORM)
-  {
-    ncutPrintf(L"\nОшибка получения количества примитивов!\n");
-    return;
-  }
-
-  for (NRX::Int32 i = 0; i < ssLen; ++i)
-  {
-    if (ncedSSName(ss, i, ent_name) != RTNORM)
-    {
-      ncutPrintf(L"\nОшибка получения имени приитива %d\n", i);
-      return;
-    }
-    if (ncdbGetObjectId(entId, ent_name) != Nano::eOk)
-    {
-      ncutPrintf(L"\nОшибка получения id приитива %d\n", i);
-      return;
-    }
-    if (ncdbOpenNcDbEntity(pEnt, entId, NcDb::kForWrite, true) == Nano::eOk)
-    {
-      ncutPrintf(L"\nПримитив открыт!\n");
-    }
-    else
-    {
-      ncutPrintf(L"\nОшибка открытия приитива %d\n", i);
-      return;
-    }
-  }
-
-  ncedSSFree(ss);
-}
+void openPLineFromBlock();
 
 void getPolylineVertex()
 {
@@ -126,29 +80,25 @@ void getPolylineVertex()
     return;
   }
 
-  AcGeMatrix3d ucsMatrix;
-
-  // Get the UCS transformation matrix
+  NcGeMatrix3d ucsMatrix;
   if (ncedGetCurrentUCS(ucsMatrix) == Nano::eOk)
   {
-    // Extract coordinate system axes from the matrix
-    AcGeVector3d xAxis;  // X-Axis direction
-    AcGeVector3d yAxis;  // Y-Axis direction
-    AcGeVector3d zAxis;  // Z-Axis direction
-    AcGePoint3d  origin; // Origin of the UCS
+    NcGeVector3d xAxis;
+    NcGeVector3d yAxis;
+    NcGeVector3d zAxis;
+    NcGePoint3d  origin;
     ucsMatrix.getCoordSystem(origin, xAxis, yAxis, zAxis);
 
-    acutPrintf(_T("\nModel Coordinate System (MCS):"));
-    acutPrintf(_T("\nOrigin: X=%.6f, Y=%.6f, Z=%.6f"), origin.x, origin.y, origin.z);
-    acutPrintf(_T("\nX-Axis: X=%.6f, Y=%.6f, Z=%.6f"), xAxis.x, xAxis.y, xAxis.z);
-    acutPrintf(_T("\nY-Axis: X=%.6f, Y=%.6f, Z=%.6f"), yAxis.x, yAxis.y, yAxis.z);
-    acutPrintf(_T("\nZ-Axis: X=%.6f, Y=%.6f, Z=%.6f"), zAxis.x, zAxis.y, zAxis.z);
+    ncutPrintf(_T("\nModel Coordinate System (MCS):"));
+    ncutPrintf(_T("\nOrigin: X=%.6f, Y=%.6f, Z=%.6f"), origin.x, origin.y, origin.z);
+    ncutPrintf(_T("\nX-Axis: X=%.6f, Y=%.6f, Z=%.6f"), xAxis.x, xAxis.y, xAxis.z);
+    ncutPrintf(_T("\nY-Axis: X=%.6f, Y=%.6f, Z=%.6f"), yAxis.x, yAxis.y, yAxis.z);
+    ncutPrintf(_T("\nZ-Axis: X=%.6f, Y=%.6f, Z=%.6f"), zAxis.x, zAxis.y, zAxis.z);
   }
   else
   {
-    acutPrintf(_T("\nFailed to get UCS Matrix."));
+    acutPrintf(_T("\nОшибка: Не удалось получить систему координат."));
   }
-
 }
 
 bool getFilePath(const NCHAR *&path)
@@ -157,11 +107,10 @@ bool getFilePath(const NCHAR *&path)
 
   if (!pDb)
   {
-    ncutPrintf(L"\nFailed to get the active database.");
+    ncutPrintf(L"\nОшибка: Не удалось получить доступ к базе данных!");
     return false;
   }
 
-  // Get full file path
   const NCHAR* filePath;
   if (pDb->getFilename(filePath) != Nano::eOk)
   {
@@ -179,7 +128,7 @@ bool getFileNameAndPath(std::wstring& name, std::wstring& path)
 
   std::wstring strFilePath(ncpath);
   std::wstring fileName;
-  int pos = strFilePath.find_last_of('\\'); // Find last backslash for Windows paths
+  int pos = strFilePath.find_last_of('\\');
   if (pos != -1)
   {
     fileName = strFilePath.substr(pos + 1);
@@ -191,86 +140,80 @@ bool getFileNameAndPath(std::wstring& name, std::wstring& path)
   return true;
 }
 
-void openLineFromBlock() 
+void openPLineFromBlock() 
 {
-  AcDbObjectId entId;
+  NcDbObjectId entId;
   nds_name selObj;
   nds_point pt;
 
-  if (ncedEntSel(L"\nSelect a Block Reference: ", selObj, pt) != RTNORM)
+  if (ncedEntSel(L"\nВыберите блок-манипулятор (содержащий 3д полилинию-скелет: ", selObj, pt) != RTNORM)
   {
-    acutPrintf(L"\nNo entity selected.");
+    ncutPrintf(L"\nОшибка: Не удалось выбрвть блок!");
     return;
   }
 
-  AcDbObject* pObj;
-
+  NcDbObject* pObj;
   if (ncdbGetObjectId(entId, selObj))
   {
-    ncutPrintf(L"\nНе удалось получить id объекта!\n");
+    ncutPrintf(L"\nОшибка: Не удалось получить id объекта!\n");
     return;
   }
 
-  if (acdbOpenAcDbObject(pObj, entId, AcDb::kForRead) != Acad::eOk)
+  if (ncdbOpenNcDbObject(pObj, entId, NcDb::kForRead) != Nano::eOk)
   {
-    acutPrintf(_T("\nFailed to open entity."));
+    ncutPrintf(L"\nОшибка: Не удалось открыть примитив!");
     return;
   }
 
-  AcDbBlockReference* pBlockRef = AcDbBlockReference::cast(pObj);
+  NcDbBlockReference* pBlockRef = NcDbBlockReference::cast(pObj);
   if (!pBlockRef)
   {
-    acutPrintf(_T("\nSelected entity is not a Block Reference."));
+    ncutPrintf(L"\nОшибка: выбранный примитив не является блоком!");
     pObj->close();
     return;
-  }
-  
+  }  
 
-  // Get Block Table Record (definition of the block)
-  AcDbObjectId blockTableId = pBlockRef->blockTableRecord();
-  AcDbBlockTableRecord* pBlockTable;
-
-  if (acdbOpenAcDbObject((AcDbObject*&)pBlockTable, blockTableId, AcDb::kForRead) != Acad::eOk)
+  NcDbObjectId blockTableId = pBlockRef->blockTableRecord();
+  NcDbBlockTableRecord* pBlockTable;
+  if (ncdbOpenNcDbObject((NcDbObject*&)pBlockTable, blockTableId, NcDb::kForRead) != Nano::eOk)
   {
-    acutPrintf(_T("\nFailed to open Block Table Record."));
+    ncutPrintf(L"\nОшибка: Не удалось открыть Block Table Record!");
     pBlockRef->close();
     return;
   }
 
-  // Iterate through entities in the block
-  AcDbBlockTableRecordIterator* pIter;
-  if (pBlockTable->newIterator(pIter) != Acad::eOk)
+  NcDbBlockTableRecordIterator* pIter;
+  if (pBlockTable->newIterator(pIter) != Nano::eOk)
   {
     pBlockTable->close();
     pBlockRef->close();
+    ncutPrintf(L"\nОшибка: Не удалось открыть Block Table Record Iterator!");
     return;
   }
 
   NCHAR* blockName;
   pBlockTable->getName(blockName);
   ncutPrintf(blockName);
-
   Manipulator manip;
 
   for (; !pIter->done(); pIter->step())
   {
-    AcDbEntity* pEnt;
+    NcDbEntity* pEnt;
     if (pIter->getEntity(pEnt, AcDb::kForRead) == Acad::eOk)
     {
-      AcDb3dPolyline* p3dPoly = AcDb3dPolyline::cast(pEnt);
+      NcDb3dPolyline* p3dPoly = NcDb3dPolyline::cast(pEnt);
       if (p3dPoly)
       {
-        acutPrintf(_T("\nFound 3D Polyline in Block:"));
+        ncutPrintf(L"\nНайдена 3D полилиния в блоке:");
 
-        // Iterate through vertices
-        AcDbObjectIterator* pVertIter = p3dPoly->vertexIterator();
+        NcDbObjectIterator* pVertIter = p3dPoly->vertexIterator();
         for (; !pVertIter->done(); pVertIter->step())
         {
-          AcDb3dPolylineVertex* pVertex;
-          if (acdbOpenAcDbObject((AcDbObject*&)pVertex, pVertIter->objectId(), AcDb::kForRead) == Acad::eOk)
+          NcDb3dPolylineVertex* pVertex;
+          if (ncdbOpenNcDbObject((NcDbObject*&)pVertex, pVertIter->objectId(), NcDb::kForRead) == Nano::eOk)
           {
-            AcGePoint3d pos = pVertex->position();
-            acutPrintf(_T("\nVertex at: X=%f, Y=%f, Z=%f"), pos.x, pos.y, pos.z);
+            NcGePoint3d pos = pVertex->position();
+            ncutPrintf(L"\nКоординаты вершины: X=%f, Y=%f, Z=%f", pos.x, pos.y, pos.z);
             pVertex->close();
 
             manip.addPointToSkelet(pos.x, pos.y, pos.z);
@@ -286,16 +229,13 @@ void openLineFromBlock()
   pBlockTable->close();
   pBlockRef->close();
 
-  AcGeMatrix3d ucsMatrix;
-
-  // Get the UCS transformation matrix
+  NcGeMatrix3d ucsMatrix;
   if (ncedGetCurrentUCS(ucsMatrix) == Nano::eOk)
   {
-    // Extract coordinate system axes from the matrix
-    AcGeVector3d xAxis;  // X-Axis direction
-    AcGeVector3d yAxis;  // Y-Axis direction
-    AcGeVector3d zAxis;  // Z-Axis direction
-    AcGePoint3d  origin; // Origin of the UCS
+    NcGeVector3d xAxis;
+    NcGeVector3d yAxis;
+    NcGeVector3d zAxis;
+    NcGePoint3d  origin;
     ucsMatrix.getCoordSystem(origin, xAxis, yAxis, zAxis);
 
     manip.setOrigin(origin.x, origin.y, origin.z);
@@ -313,19 +253,19 @@ void openLineFromBlock()
 
     manip.writeToJSON();
 
-    acutPrintf(_T("\nModel Coordinate System (MCS):"));
-    acutPrintf(_T("\nOrigin: X=%.6f, Y=%.6f, Z=%.6f"), origin.x, origin.y, origin.z);
-    acutPrintf(_T("\nX-Axis: X=%.6f, Y=%.6f, Z=%.6f"), xAxis.x, xAxis.y, xAxis.z);
-    acutPrintf(_T("\nY-Axis: X=%.6f, Y=%.6f, Z=%.6f"), yAxis.x, yAxis.y, yAxis.z);
-    acutPrintf(_T("\nZ-Axis: X=%.6f, Y=%.6f, Z=%.6f"), zAxis.x, zAxis.y, zAxis.z);
+    ncutPrintf(L"\nСистема координат модели (MCS):");
+    ncutPrintf(L"\nOrigin: X=%.6f, Y=%.6f, Z=%.6f", origin.x, origin.y, origin.z);
+    ncutPrintf(L"\nX-Axis: X=%.6f, Y=%.6f, Z=%.6f", xAxis.x, xAxis.y, xAxis.z);
+    ncutPrintf(L"\nY-Axis: X=%.6f, Y=%.6f, Z=%.6f", yAxis.x, yAxis.y, yAxis.z);
+    ncutPrintf(L"\nZ-Axis: X=%.6f, Y=%.6f, Z=%.6f", zAxis.x, zAxis.y, zAxis.z);
   }
   else
   {
-    acutPrintf(_T("\nFailed to get UCS Matrix."));
+    ncutPrintf(_T("\nОшибка: Не удалось получить матрицу координат!"));
   }
 }
 
-void helloNrxCmd()
+void testNrxCmd()
 {
   ncutPrintf(L"Module is working!");
 }
@@ -337,12 +277,7 @@ void initApp()
     L"_MYNRXTEST",
     L"MYNRXRTEST",
     ACRX_CMD_TRANSPARENT,
-    helloNrxCmd);
-  ncedRegCmds->addCommand(L"MYNRXCOMMANDS_GROUP",
-    L"_MYNRXVECTOR",
-    L"MYNRXVECTOR",
-    ACRX_CMD_TRANSPARENT,
-    manipulatorVector);
+    testNrxCmd);
   ncedRegCmds->addCommand(L"MYNRXCOMMANDS_GROUP",
     L"_MYNRXPLINE3DVERTEX",
     L"MYNRXPLINE3DVERTEX",
