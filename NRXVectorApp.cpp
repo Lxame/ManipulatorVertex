@@ -287,7 +287,7 @@ void initApp()
     L"_MYNRXOPENBLOCK",
     L"MYNRXOPENBLOCK",
     ACRX_CMD_TRANSPARENT,
-    openLineFromBlock);
+    openPLineFromBlock);
 }
 
 void uninitApp()
