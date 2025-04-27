@@ -364,3 +364,6 @@ FodyWeavers.xsd
 
 # JSON
 *.json
+
+#build
+build 

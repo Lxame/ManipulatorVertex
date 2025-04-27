@@ -3,7 +3,7 @@
 
 #include "pch.h"
 #include "Manipulator.h"
-#include "include/json.hpp"
+#include "../include/json.hpp"
 
 Manipulator::Manipulator()
 	: origin{ 0, 0, 0 }

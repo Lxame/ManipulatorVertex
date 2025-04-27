@@ -89,15 +89,15 @@ void getPolylineVertex()
     NcGePoint3d  origin;
     ucsMatrix.getCoordSystem(origin, xAxis, yAxis, zAxis);
 
-    ncutPrintf(_T("\nModel Coordinate System (MCS):"));
-    ncutPrintf(_T("\nOrigin: X=%.6f, Y=%.6f, Z=%.6f"), origin.x, origin.y, origin.z);
-    ncutPrintf(_T("\nX-Axis: X=%.6f, Y=%.6f, Z=%.6f"), xAxis.x, xAxis.y, xAxis.z);
-    ncutPrintf(_T("\nY-Axis: X=%.6f, Y=%.6f, Z=%.6f"), yAxis.x, yAxis.y, yAxis.z);
-    ncutPrintf(_T("\nZ-Axis: X=%.6f, Y=%.6f, Z=%.6f"), zAxis.x, zAxis.y, zAxis.z);
+    ncutPrintf(L"\nModel Coordinate System (MCS):");
+    ncutPrintf(L"\nOrigin: X=%.6f, Y=%.6f, Z=%.6f", origin.x, origin.y, origin.z);
+    ncutPrintf(L"\nX-Axis: X=%.6f, Y=%.6f, Z=%.6f", xAxis.x, xAxis.y, xAxis.z);
+    ncutPrintf(L"\nY-Axis: X=%.6f, Y=%.6f, Z=%.6f", yAxis.x, yAxis.y, yAxis.z);
+    ncutPrintf(L"\nZ-Axis: X=%.6f, Y=%.6f, Z=%.6f", zAxis.x, zAxis.y, zAxis.z);
   }
   else
   {
-    acutPrintf(_T("\nОшибка: Не удалось получить систему координат."));
+    ncutPrintf(L"\nОшибка: Не удалось получить систему координат.");
   }
 }
 
@@ -261,7 +261,7 @@ void openPLineFromBlock()
   }
   else
   {
-    ncutPrintf(_T("\nОшибка: Не удалось получить матрицу координат!"));
+    ncutPrintf(L"\nОшибка: Не удалось получить матрицу координат!");
   }
 }
 
