@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(NRXVertexApp LANGUAGES CXX)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-set(NRX_DIR "C:/Program Files/Nanosoft/nanoCAD x64 25.0/SDK")
+set(SDK_DIR "C:/Program Files/Nanosoft/nanoCAD x64 25.0/SDK")
 
 add_definitions(-D_AFXDLL)
 set(CMAKE_GENERATOR_TOOLSET "v142")
@@ -22,7 +22,7 @@ add_library(NRXVertexApp SHARED ${PROJECT_SOURCES})
 #target_link_libraries(NRXVertexApp PRIVATE include/json.hpp)
 
 set_target_properties(NRXVertexApp PROPERTIES 
-    VS_USER_PROPS ${NRX_DIR}/include/arxgate/rxsdk_debug.props
+    VS_USER_PROPS ${SDK_DIR}/include/arxgate/rxsdk_debug.props
     VS_GLOBAL_CharacterSet "Unicode"
     VS_GLOBAL_UseOfMfc "Dynamic")
 
@@ -39,20 +39,20 @@ target_compile_options(NRXVertexApp PRIVATE
     "$<$<CONFIG:Release>:/DUNICODE /D_UNICODE>"
 )
 
-target_include_directories(NRXVertexApp PRIVATE ${NRX_DIR}/include/arxgate)
-target_include_directories(NRXVertexApp PRIVATE ${NRX_DIR}/include/nrxdbgate)
-target_include_directories(NRXVertexApp PRIVATE ${NRX_DIR}/include/MAPI)
-target_include_directories(NRXVertexApp PRIVATE ${NRX_DIR}/include/nrxhostgate)
-target_include_directories(NRXVertexApp PRIVATE ${NRX_DIR}/include/nrxuigate)
-target_include_directories(NRXVertexApp PRIVATE ${NRX_DIR}/include/nrxgate)
-target_include_directories(NRXVertexApp PRIVATE ${NRX_DIR}/include/nrxpropsgate)
-target_include_directories(NRXVertexApp PRIVATE ${NRX_DIR}/include)
-target_include_directories(NRXVertexApp PRIVATE ${NRX_DIR}/include-x64)
-target_include_directories(NRXVertexApp PRIVATE ${NRX_DIR}/include-x64/Drawing/ActiveX)
-target_include_directories(NRXVertexApp PRIVATE ${NRX_DIR}/include-x64/Drawing/ActiveX/OdaX)
+target_include_directories(NRXVertexApp PRIVATE ${SDK_DIR}/include/arxgate)
+target_include_directories(NRXVertexApp PRIVATE ${SDK_DIR}/include/nrxdbgate)
+target_include_directories(NRXVertexApp PRIVATE ${SDK_DIR}/include/MAPI)
+target_include_directories(NRXVertexApp PRIVATE ${SDK_DIR}/include/nrxhostgate)
+target_include_directories(NRXVertexApp PRIVATE ${SDK_DIR}/include/nrxuigate)
+target_include_directories(NRXVertexApp PRIVATE ${SDK_DIR}/include/nrxgate)
+target_include_directories(NRXVertexApp PRIVATE ${SDK_DIR}/include/nrxpropsgate)
+target_include_directories(NRXVertexApp PRIVATE ${SDK_DIR}/include)
+target_include_directories(NRXVertexApp PRIVATE ${SDK_DIR}/include-x64)
+target_include_directories(NRXVertexApp PRIVATE ${SDK_DIR}/include-x64/Drawing/ActiveX)
+target_include_directories(NRXVertexApp PRIVATE ${SDK_DIR}/include-x64/Drawing/ActiveX/OdaX)
 
-target_link_directories(NRXVertexApp PRIVATE ${NRX_DIR}/lib-x64)
-target_link_directories(NRXVertexApp PRIVATE ${NRX_DIR}/lib-x64/TD)
+target_link_directories(NRXVertexApp PRIVATE ${SDK_DIR}/lib-x64)
+target_link_directories(NRXVertexApp PRIVATE ${SDK_DIR}/lib-x64/TD)
 target_link_directories(NRXVertexApp PRIVATE ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Debug)
 
 target_link_libraries(NRXVertexApp
